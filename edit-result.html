@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -7,352 +7,34 @@
 <link rel="stylesheet" href="assets/styles.css">
 <link rel="stylesheet" href="assets/result-workspace.css">
 <link rel="stylesheet" href="assets/portal-loader.css">
+<style>
+.result-sheet-card{background:#fff;border:1px solid #e6ebf2;border-radius:20px;box-shadow:0 14px 36px rgba(20,43,78,.07);overflow:hidden;margin-top:16px}.result-sheet-head{padding:18px 20px;border-bottom:1px solid #edf1f6;display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap}.result-sheet-head h3{margin:0;color:#13233f;font-size:16px}.result-sheet-head p{margin:5px 0 0;color:#718096;font-size:11px}.result-table-wrap{overflow:auto}.result-table{width:100%;border-collapse:separate;border-spacing:0;min-width:860px}.result-table th{background:#f7f9fc;color:#687386;font-size:10px;text-transform:uppercase;letter-spacing:.06em;font-weight:800;padding:12px 10px;border-bottom:1px solid #e9eef5;text-align:left;white-space:nowrap}.result-table td{padding:11px 10px;border-bottom:1px solid #eef2f6;font-size:12px;color:#26354d;vertical-align:middle}.result-table tbody tr:last-child td{border-bottom:0}.result-table tbody tr.selected-row{background:#f8fbff}.result-table tbody tr.selected-row td:first-child{box-shadow:inset 3px 0 0 #0b5ed7}.subject-name{font-weight:800;color:#13233f}.subject-code{display:block;color:#97a3b5;font-size:10px;margin-top:3px}.result-number{font-weight:800}.result-input{width:78px;height:34px;border:1px solid #a9c2e5;border-radius:9px;padding:0 9px;font-weight:800;color:#13233f;background:#fff;outline:none}.result-input:focus{border-color:#0b5ed7;box-shadow:0 0 0 3px rgba(11,94,215,.1)}.result-readonly{color:#718096}.selected-tag{display:inline-flex;align-items:center;padding:4px 7px;border-radius:999px;background:#eaf2ff;color:#0b5ed7;font-size:9px;font-weight:900;margin-left:7px}.table-status{font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.03em}.table-status.draft{color:#a56a00}.table-status.submitted{color:#156f45}.table-status.published{color:#285ea8}.table-status.none{color:#9aa5b4}.save-bar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:16px 20px;border-top:1px solid #edf1f6;background:#fbfcfe}.save-note{color:#718096;font-size:11px;line-height:1.5}.save-actions{display:flex;gap:8px;flex-wrap:wrap}.student-overview{display:grid;grid-template-columns:74px 1fr;gap:16px;align-items:center}.overview-avatar{width:74px;height:74px;border-radius:18px;overflow:hidden;display:grid;place-items:center;background:#edf3fb;color:#31527e;font-weight:900;font-size:22px}.overview-avatar img{width:100%;height:100%;object-fit:cover}.overview-name{margin:0;color:#13233f;font-size:18px}.overview-meta{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}.overview-chip{padding:6px 9px;border-radius:999px;background:#f4f7fb;color:#607087;font-size:10px;font-weight:800}.overview-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-top:14px}.overview-grid .detail-item{background:#f8fafc;border:1px solid #edf1f6;border-radius:12px;padding:10px}.overview-grid small{display:block;color:#94a0b2;font-size:9px;text-transform:uppercase;letter-spacing:.05em;font-weight:800}.overview-grid b{display:block;margin-top:4px;color:#243650;font-size:11px;word-break:break-word}@media(max-width:700px){.overview-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.student-overview{grid-template-columns:58px 1fr}.overview-avatar{width:58px;height:58px;border-radius:14px}.overview-name{font-size:16px}}
+</style>
 </head>
 <body data-title="Edit Result">
-<div id="page-loader" class="lbs-loader" aria-live="polite">
-  <div class="lbs-loader-card">
-    <img class="lbs-loader-logo" src="https://i.ibb.co/whtP8S5v/image.png" alt="Laff British Montessori School">
-    <div class="lbs-loader-ring"></div>
-    <div class="lbs-loader-title">Opening Result</div>
-    <div id="loader-text" class="lbs-loader-text">Verifying your teacher access…</div>
-    <div class="lbs-loader-bar"></div>
-    <div class="lbs-loader-dots"><span></span><span></span><span></span></div>
-  </div>
-</div>
-<div id="app-shell"></div>
-<div id="toast-host"></div>
+<div id="page-loader" class="lbs-loader" aria-live="polite"><div class="lbs-loader-card"><img class="lbs-loader-logo" src="https://i.ibb.co/whtP8S5v/image.png" alt="Laff British Montessori School"><div class="lbs-loader-ring"></div><div class="lbs-loader-title">Opening Result</div><div id="loader-text" class="lbs-loader-text">Verifying your teacher access…</div><div class="lbs-loader-bar"></div><div class="lbs-loader-dots"><span></span><span></span><span></span></div></div></div>
+<div id="app-shell"></div><div id="toast-host"></div>
 <script type="module">
 import { requireTeacher, mountShell, supabase, escapeHtml, toast, getCachedSchoolSettings } from './assets/app.js';
-
-const esc = escapeHtml;
-const params = new URLSearchParams(location.search);
-const studentId = params.get('studentid') || params.get('id');
-const classIdParam = params.get('classid') || params.get('class');
-const subjectIdParam = params.get('subjectid') || params.get('subject');
-const resultIdParam = params.get('resultid') || params.get('result');
-
-const loader = document.querySelector('#page-loader');
-const loaderText = document.querySelector('#loader-text');
-let user, term, schoolSettings = getCachedSchoolSettings(), enrollment, subject, result;
-
-const hideLoader = () => {
-  loader?.classList.add('is-hidden');
-  setTimeout(() => loader?.remove(), 380);
-};
-const setLoaderText = (text) => {
-  if (loaderText) loaderText.textContent = text;
-};
-const withTimeout = async (request, label, ms = 12000) => {
-  let timer;
-  try {
-    return await Promise.race([
-      Promise.resolve(request),
-      new Promise((_, reject) => {
-        timer = setTimeout(() => reject(new Error(`${label} is taking too long. Please refresh and try again.`)), ms);
-      })
-    ]);
-  } finally {
-    clearTimeout(timer);
-  }
-};
-
-const initials = (a, b) => `${(a || '')[0] || ''}${(b || '')[0] || ''}`.toUpperCase();
-const gradeFrom = (n, rules) => {
-  const score = Number(n) || 0;
-  const hit = (rules || []).find(x => score <= Number(x.max) && score >= Number(x.min));
-  return hit?.grade || 'F';
-};
-const pointFrom = (n, rules) => {
-  const score = Number(n) || 0;
-  const hit = (rules || []).find(x => score <= Number(x.max) && score >= Number(x.min));
-  return hit?.point ?? 0;
-};
-
-function render(html) {
-  const shell = document.querySelector('#app-shell');
-  shell.dataset.content = html;
-  mountShell(user);
-}
-
-function showError(message) {
-  render(`<div class="form-page">
-    <section class="score-card">
-      <div class="panel-head">
-        <div>
-          <span class="hero-kicker">EDIT RESULT</span>
-          <h2 style="margin-top:8px">Result could not be loaded</h2>
-          <p style="margin:6px 0 0;color:#667085">${esc(message || 'The selected result could not be found.')}</p>
-        </div>
-      </div>
-      <div class="form-footer" style="margin-top:18px">
-        <div class="submission-note">Your result was not changed.</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn" id="retry-load" type="button">Try Again</button>
-          <a class="btn secondary" href="results.html">Back to Enter Results</a>
-        </div>
-      </div>
-    </section>
-  </div>`);
-  document.querySelector('#retry-load')?.addEventListener('click', () => location.reload());
-}
-
-function studentName() {
-  const s = enrollment.students || {};
-  return `${s.first_name || ''} ${s.middle_name || ''} ${s.last_name || ''}`.replace(/\s+/g, ' ').trim() || 'Student';
-}
-
-function detailCard() {
-  const s = enrollment.students || {};
-  return `<section class="student-detail-card">
-    <div class="detail-avatar">${s.photo_url ? `<img src="${esc(s.photo_url)}" alt="">` : esc(initials(s.first_name, s.last_name))}</div>
-    <div>
-      <h3 style="margin:0;color:#13233f">${esc(studentName())}</h3>
-      <p style="margin:4px 0;color:#667085;font-size:11px">${esc(subject?.name || 'Subject')} · ${esc(term.name)} · ${esc(term.academic_sessions?.name || 'Academic Session')}</p>
-      <div class="detail-grid">
-        <div class="detail-item"><small>Student ID</small><b>${esc(s.student_id || '—')}</b></div>
-        <div class="detail-item"><small>Exam Number</small><b>${esc(s.exam_number || '—')}</b></div>
-        <div class="detail-item"><small>Class</small><b>${esc(enrollment.classes?.name || '—')}</b></div>
-        <div class="detail-item"><small>Level</small><b>${esc(enrollment.classes?.level || '—')}</b></div>
-        <div class="detail-item"><small>Date of Birth</small><b>${esc(s.date_of_birth || '—')}</b></div>
-        <div class="detail-item"><small>Gender</small><b>${esc(s.gender || '—')}</b></div>
-        <div class="detail-item"><small>Guardian</small><b>${esc(s.guardian_name || '—')}</b></div>
-        <div class="detail-item"><small>Result Status</small><b>${esc(String(result.status || 'DRAFT'))}</b></div>
-      </div>
-    </div>
-  </section>`;
-}
-
-function renderForm() {
-  const published = String(result.status || '').toUpperCase() === 'PUBLISHED';
-  render(`<div class="form-page">
-    <section class="form-hero">
-      <div>
-        <span class="hero-kicker">${published ? 'PUBLISHED RESULT' : 'EDIT RESULT'}</span>
-        <h2>${published ? 'Published Result' : 'Edit Student Result'}</h2>
-        <p>${esc(subject.name)} · ${esc(term.name)} · ${esc(term.academic_sessions?.name || 'Academic Session')}</p>
-      </div>
-      <a class="btn secondary" href="results.html?class=${encodeURIComponent(enrollment.class_id)}&subject=${encodeURIComponent(subject.id)}">← Back to Students</a>
-    </section>
-    ${detailCard()}
-    <form id="result-form" class="score-card">
-      <div class="panel-head">
-        <div>
-          <h3 style="margin:0">Academic Scores</h3>
-          <p style="margin:4px 0 0;color:#667085;font-size:11px">${published ? 'This result has been published by the administrator and is read-only.' : 'Update the scores below. Totals, grades and grade points recalculate automatically.'}</p>
-        </div>
-      </div>
-      <div class="score-grid">
-        <div class="score-field">
-          <label for="ca">CA Score</label>
-          <input id="ca" type="number" min="0" max="${Number(subject.max_ca || 40)}" step="0.01" value="${esc(result.ca_score ?? '')}" ${published ? 'disabled' : ''} required>
-          <div class="score-helper">Maximum ${esc(subject.max_ca ?? 0)} marks</div>
-        </div>
-        <div class="score-field">
-          <label for="exam">Exam Score</label>
-          <input id="exam" type="number" min="0" max="${Number(subject.max_exam || 60)}" step="0.01" value="${esc(result.exam_score ?? '')}" ${published ? 'disabled' : ''} required>
-          <div class="score-helper">Maximum ${esc(subject.max_exam ?? 0)} marks</div>
-        </div>
-        <div class="score-field" style="grid-column:1/-1">
-          <label for="remark">Teacher Remark</label>
-          <textarea id="remark" maxlength="500" ${published ? 'disabled' : ''}>${esc(result.teacher_remark || '')}</textarea>
-        </div>
-      </div>
-      <div class="score-preview">
-        <div class="preview-item"><b id="total-preview">0</b><span>Total</span></div>
-        <div class="preview-item"><b id="grade-preview">F</b><span>Grade</span></div>
-        <div class="preview-item"><b id="point-preview">0</b><span>Grade Point</span></div>
-        <div class="preview-item"><b>${esc(Number(subject.max_ca || 0) + Number(subject.max_exam || 0))}</b><span>Maximum</span></div>
-      </div>
-      <div id="form-message" class="submission-note" style="margin-top:15px"></div>
-      <div class="form-footer">
-        <div class="submission-note">${published ? 'Published results are controlled by the administrator.' : 'You can save a draft or submit your updated result to the administrator for review and publication.'}</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          ${published ? '<a class="btn" href="results.html">Return to Enter Results</a>' : '<button class="btn secondary" id="save-draft" type="button">Save Draft</button><button class="btn" id="submit-result" type="button">Submit to Admin</button>'}
-        </div>
-      </div>
-      <div id="success" class="success-panel"></div>
-    </form>
-  </div>`);
-  updatePreview();
-  if (!published) setupForm();
-}
-
-function updatePreview() {
-  const ca = Math.max(0, Number(document.querySelector('#ca')?.value || 0));
-  const exam = Math.max(0, Number(document.querySelector('#exam')?.value || 0));
-  const total = ca + exam;
-  document.querySelector('#total-preview').textContent = total.toFixed(2).replace(/\.00$/, '');
-  document.querySelector('#grade-preview').textContent = gradeFrom(total, schoolSettings.grading_rules);
-  document.querySelector('#point-preview').textContent = pointFrom(total, schoolSettings.grading_rules);
-}
-
-function validate() {
-  const ca = Number(document.querySelector('#ca').value);
-  const exam = Number(document.querySelector('#exam').value);
-  if (!Number.isFinite(ca) || ca < 0 || ca > Number(subject.max_ca)) throw new Error(`CA score must be between 0 and ${subject.max_ca}.`);
-  if (!Number.isFinite(exam) || exam < 0 || exam > Number(subject.max_exam)) throw new Error(`Exam score must be between 0 and ${subject.max_exam}.`);
-  const total = ca + exam;
-  return { ca, exam, total, grade: gradeFrom(total, schoolSettings.grading_rules), grade_point: pointFrom(total, schoolSettings.grading_rules) };
-}
-
-async function save(status) {
-  const message = document.querySelector('#form-message');
-  const buttons = [document.querySelector('#save-draft'), document.querySelector('#submit-result')];
-  try {
-    buttons.forEach(b => { if (b) b.disabled = true; });
-    message.textContent = 'Saving result…';
-    const v = validate();
-    const patch = {
-      ca_score: v.ca,
-      exam_score: v.exam,
-      total: v.total,
-      grade: v.grade,
-      grade_point: v.grade_point,
-      teacher_remark: document.querySelector('#remark').value.trim() || null,
-      status
-    };
-    const { error } = await withTimeout(
-      supabase.from('results').update(patch).eq('id', result.id).eq('created_by', user.id),
-      'Saving the result'
-    );
-    if (error) throw error;
-    result = { ...result, ...patch };
-    document.querySelector('#success').textContent = status === 'SUBMITTED' ? 'Result submitted to the administrator successfully.' : 'Changes saved as draft successfully.';
-    document.querySelector('#success').classList.add('show');
-    toast(status === 'SUBMITTED' ? 'Result submitted to admin.' : 'Result draft saved.');
-    setTimeout(() => location.href = `results.html?class=${encodeURIComponent(enrollment.class_id)}&subject=${encodeURIComponent(subject.id)}`, 900);
-  } catch (e) {
-    console.error(e);
-    message.textContent = e.message || 'The result could not be saved.';
-    toast(message.textContent, 'error');
-  } finally {
-    buttons.forEach(b => { if (b) b.disabled = false; });
-  }
-}
-
-function setupForm() {
-  document.querySelector('#ca').oninput = updatePreview;
-  document.querySelector('#exam').oninput = updatePreview;
-  document.querySelector('#save-draft').onclick = () => save('DRAFT');
-  document.querySelector('#submit-result').onclick = () => save('SUBMITTED');
-}
-
-async function load() {
-  if (!resultIdParam && !studentId) throw new Error('No student or result was selected.');
-
-  setLoaderText('Checking the current academic term…');
-  const { data: currentTerm, error: termError } = await withTimeout(
-    supabase.from('terms').select('id,name,session_id,academic_sessions(name)').eq('is_current', true).order('starts_on', { ascending: false }).limit(1).maybeSingle(),
-    'Loading the current term'
-  );
-  if (termError) throw termError;
-  if (!currentTerm) throw new Error('There is no current academic term configured.');
-  term = currentTerm;
-
-  const settingsResponse = await withTimeout(
-    supabase.from('school_settings').select('*').limit(1).maybeSingle(),
-    'Loading grading settings'
-  );
-  if (settingsResponse.error) throw settingsResponse.error;
-  schoolSettings = settingsResponse.data || schoolSettings;
-
-  let enrollmentId = null;
-  let subjectId = subjectIdParam || null;
-
-  if (resultIdParam) {
-    setLoaderText('Finding the selected result…');
-    const { data: existingResult, error: resultError } = await withTimeout(
-      supabase.from('results').select('id,status,ca_score,exam_score,total,grade,grade_point,teacher_remark,principal_remark,published_at,created_at,enrollment_id,term_id,subject_id').eq('id', resultIdParam).eq('created_by', user.id).maybeSingle(),
-      'Loading the selected result'
-    );
-    if (resultError) throw resultError;
-    if (!existingResult) throw new Error('This result could not be found under your teacher account.');
-    if (String(existingResult.term_id) !== String(term.id)) throw new Error('This result belongs to a different academic term.');
-    result = existingResult;
-    enrollmentId = result.enrollment_id;
-    subjectId = subjectId || result.subject_id;
-  }
-
-  setLoaderText('Loading the student record…');
-  let enrollmentResponse;
-  if (enrollmentId) {
-    enrollmentResponse = await withTimeout(
-      supabase.from('enrollments').select('id,student_id,class_id,status,students(id,first_name,middle_name,last_name,student_id,exam_number,photo_url,date_of_birth,gender,school_email,phone,address,guardian_name,guardian_phone),classes(id,name,level,description)').eq('id', enrollmentId).eq('status', 'ACTIVE').maybeSingle(),
-      'Loading the student enrollment'
-    );
-  } else {
-    enrollmentResponse = await withTimeout(
-      supabase.from('enrollments').select('id,student_id,class_id,status,students(id,first_name,middle_name,last_name,student_id,exam_number,photo_url,date_of_birth,gender,school_email,phone,address,guardian_name,guardian_phone),classes(id,name,level,description)').eq('student_id', studentId).eq('status', 'ACTIVE').order('created_at', { ascending: false }).limit(1).maybeSingle(),
-      'Loading the student enrollment'
-    );
-  }
-  if (enrollmentResponse.error) throw enrollmentResponse.error;
-  if (!enrollmentResponse.data) throw new Error('Active student enrollment not found.');
-  enrollment = enrollmentResponse.data;
-  if (studentId && String(enrollment.student_id) !== String(studentId)) throw new Error('The selected student does not match this result.');
-  if (classIdParam && String(enrollment.class_id) !== String(classIdParam)) throw new Error('The selected class does not match this student enrollment.');
-
-  if (!subjectId) {
-    setLoaderText('Finding the subject result…');
-    const { data: candidate, error: candidateError } = await withTimeout(
-      supabase.from('results').select('id,status,ca_score,exam_score,total,grade,grade_point,teacher_remark,principal_remark,published_at,created_at,enrollment_id,term_id,subject_id').eq('enrollment_id', enrollment.id).eq('term_id', term.id).eq('created_by', user.id).order('created_at', { ascending: false }).limit(1).maybeSingle(),
-      'Finding the student result'
-    );
-    if (candidateError) throw candidateError;
-    if (!candidate) throw new Error('No existing result was found for this student in the current term.');
-    result = candidate;
-    subjectId = candidate.subject_id;
-  }
-
-  setLoaderText('Verifying your subject assignment…');
-  const { data: assignment, error: assignmentError } = await withTimeout(
-    supabase.from('class_subjects').select('id,class_id,subject_id,teacher_id,subjects(id,name,code,max_ca,max_exam,is_active)').eq('teacher_id', user.teacher.id).eq('class_id', enrollment.class_id).eq('subject_id', subjectId).maybeSingle(),
-    'Verifying the subject assignment'
-  );
-  if (assignmentError) throw assignmentError;
-  if (!assignment) throw new Error('This subject is not assigned to you for this student’s class.');
-  subject = assignment.subjects;
-  if (!subject?.is_active) throw new Error('This subject is inactive.');
-
-  if (!result) {
-    setLoaderText('Loading the student result…');
-    const { data: foundResult, error: foundError } = await withTimeout(
-      supabase.from('results').select('id,status,ca_score,exam_score,total,grade,grade_point,teacher_remark,principal_remark,published_at,created_at,enrollment_id,term_id,subject_id').eq('enrollment_id', enrollment.id).eq('term_id', term.id).eq('subject_id', subject.id).eq('created_by', user.id).maybeSingle(),
-      'Loading the student result'
-    );
-    if (foundError) throw foundError;
-    if (!foundResult) throw new Error('No existing result was found for this student and subject.');
-    result = foundResult;
-  }
-
-  setLoaderText('Preparing the result editor…');
-  renderForm();
-}
-
-async function run() {
-  try {
-    user = await withTimeout(requireTeacher(), 'Verifying teacher access', 12000);
-    if (!user) return;
-    if (!user.teacher?.id) {
-      const { data: teacher, error } = await withTimeout(
-        supabase.from('teachers').select('id,full_name').eq('user_id', user.id).maybeSingle(),
-        'Loading teacher profile'
-      );
-      if (error) throw error;
-      if (!teacher) throw new Error('Teacher profile could not be verified.');
-      user.teacher = { ...user.teacher, ...teacher };
-    }
-    await load();
-  } catch (e) {
-    console.error(e);
-    if (user) showError(e.message || 'The selected result could not be loaded.');
-    toast(e.message || 'Could not load the result.', 'error');
-  } finally {
-    hideLoader();
-  }
-}
-
-run();
+const esc=escapeHtml,params=new URLSearchParams(location.search),studentId=params.get('studentid')||params.get('id'),classIdParam=params.get('classid')||params.get('class'),subjectIdParam=params.get('subjectid')||params.get('subject'),resultIdParam=params.get('resultid')||params.get('result');
+const loader=document.querySelector('#page-loader'),loaderText=document.querySelector('#loader-text');let user,term,schoolSettings=getCachedSchoolSettings(),enrollment,selectedResult,selectedSubject,subjects=[],resultMap=new Map();
+const hideLoader=()=>{loader?.classList.add('is-hidden');setTimeout(()=>loader?.remove(),380)};const setLoaderText=t=>{if(loaderText)loaderText.textContent=t};const withTimeout=async(request,label,ms=12000)=>{let timer;try{return await Promise.race([Promise.resolve(request),new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error(`${label} is taking too long. Please refresh and try again.`)),ms)})])}finally{clearTimeout(timer)}};const initials=(a,b)=>`${(a||'')[0]||''}${(b||'')[0]||''}`.toUpperCase();
+const gradeFrom=(n,rules)=>{const score=Number(n)||0,hit=(rules||[]).find(x=>score<=Number(x.max)&&score>=Number(x.min));return hit?.grade||'F'};const pointFrom=(n,rules)=>{const score=Number(n)||0,hit=(rules||[]).find(x=>score<=Number(x.max)&&score>=Number(x.min));return hit?.point??0};
+function render(html){const shell=document.querySelector('#app-shell');shell.dataset.content=html;mountShell(user)}
+function showError(message){render(`<div class="form-page"><section class="score-card"><span class="hero-kicker">EDIT RESULT</span><h2 style="margin-top:8px">Result could not be loaded</h2><p style="margin:6px 0;color:#667085">${esc(message||'The selected result could not be found.')}</p><div class="form-footer" style="margin-top:18px"><div class="submission-note">Your result was not changed.</div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="retry-load" type="button">Try Again</button><a class="btn secondary" href="results.html">Back to Enter Results</a></div></div></section></div>`);document.querySelector('#retry-load')?.addEventListener('click',()=>location.reload())}
+function studentName(){const s=enrollment?.students||{};return `${s.first_name||''} ${s.middle_name||''} ${s.last_name||''}`.replace(/\s+/g,' ').trim()||'Student'}function statusClass(status){const s=String(status||'').toUpperCase();return s==='DRAFT'?'draft':s==='SUBMITTED'?'submitted':s==='PUBLISHED'?'published':'none'}function statusText(status){const s=String(status||'').toUpperCase();return s||'NO RESULT'}
+function overviewCard(){const s=enrollment.students||{};return `<section class="student-detail-card"><div class="student-overview"><div class="overview-avatar">${s.photo_url?`<img src="${esc(s.photo_url)}" alt="">`:esc(initials(s.first_name,s.last_name))}</div><div><h2 class="overview-name">${esc(studentName())}</h2><div class="overview-chip">Current Term: ${esc(term.name)} · ${esc(term.academic_sessions?.name||'Academic Session')}</div><div class="overview-meta"><span class="overview-chip">Student ID: ${esc(s.student_id||'—')}</span><span class="overview-chip">Exam No: ${esc(s.exam_number||'—')}</span><span class="overview-chip">Class: ${esc(enrollment.classes?.name||'—')}</span><span class="overview-chip">Level: ${esc(enrollment.classes?.level||'—')}</span></div></div></div><div class="overview-grid"><div class="detail-item"><small>Date of Birth</small><b>${esc(s.date_of_birth||'—')}</b></div><div class="detail-item"><small>Gender</small><b>${esc(s.gender||'—')}</b></div><div class="detail-item"><small>School Email</small><b>${esc(s.school_email||'—')}</b></div><div class="detail-item"><small>Guardian</small><b>${esc(s.guardian_name||'—')}</b></div></div></section>`}
+function tableRow(subject){const r=resultMap.get(subject.id),isSelected=selectedSubject?.id===subject.id,editable=isSelected&&r&&String(r.status).toUpperCase()!=='PUBLISHED';const ca=r?.ca_score??'',exam=r?.exam_score??'',total=r?.total!=null?r.total:(r?Number(ca||0)+Number(exam||0):''),grade=r?gradeFrom(total,schoolSettings.grading_rules):'—',point=r?pointFrom(total,schoolSettings.grading_rules):'—';return `<tr class="${isSelected?'selected-row':''}" data-subject-id="${esc(subject.id)}"><td><span class="subject-name">${esc(subject.name)}${isSelected?'<span class="selected-tag">Selected</span>':''}</span>${subject.code?`<span class="subject-code">${esc(subject.code)}</span>`:''}</td><td>${editable?`<input class="result-input" id="selected-ca" type="number" min="0" max="${Number(subject.max_ca||40)}" step="0.01" value="${esc(ca)}" aria-label="${esc(subject.name)} CA score">`:`<span class="result-number">${r?.ca_score??'—'}</span>`}<small style="display:block;color:#99a5b6;font-size:9px;margin-top:3px">Max ${esc(subject.max_ca??0)}</small></td><td><span class="result-readonly">${r?.exam_score??'—'}</span><small style="display:block;color:#99a5b6;font-size:9px;margin-top:3px">Max ${esc(subject.max_exam??0)}</small></td><td><span class="result-number" data-total>${r?Number(total).toFixed(2).replace(/\.00$/,''):'—'}</span></td><td><span class="result-number" data-grade>${r?esc(grade):'—'}</span></td><td><span class="result-number" data-point>${r?esc(point):'—'}</span></td><td><span class="table-status ${statusClass(r?.status)}">${statusText(r?.status)}</span></td></tr>`}
+function renderTable(){const canEdit=selectedResult&&String(selectedResult.status).toUpperCase()!=='PUBLISHED';render(`<div class="form-page"><section class="form-hero"><div><span class="hero-kicker">STUDENT RESULT SHEET</span><h2>Edit Student Result</h2><p>${esc(selectedSubject?.name||'Selected Subject')} · ${esc(term.name)} · ${esc(term.academic_sessions?.name||'Academic Session')}</p></div><a class="btn secondary" href="results.html?class=${encodeURIComponent(enrollment.class_id)}&subject=${encodeURIComponent(selectedSubject?.id||'')}">← Back to Students</a></section>${overviewCard()}<section class="result-sheet-card"><div class="result-sheet-head"><div><h3>Academic Results</h3><p>All visible subject results for this student are listed below. Only the selected subject CA can be edited.</p></div><div class="overview-chip">${subjects.length} Subjects</div></div><div class="result-table-wrap"><table class="result-table"><thead><tr><th>Subject</th><th>CA</th><th>Exam</th><th>Total</th><th>Grade</th><th>Point</th><th>Status</th></tr></thead><tbody>${subjects.map(tableRow).join('')}</tbody></table></div><div class="save-bar"><div class="save-note">${canEdit?'Change the CA score only. Total, grade and grade point update automatically, then submit the updated result to the administrator.':'This selected result has already been published by the administrator and cannot be edited by the teacher.'}</div><div class="save-actions">${canEdit?'<button class="btn secondary" id="save-draft" type="button">Save Draft</button><button class="btn" id="submit-result" type="button">Submit to Admin</button>':'<a class="btn" href="results.html">Return to Enter Results</a>'}</div></div><div id="table-message" class="submission-note" style="padding:0 20px 16px"></div></section></div>`);if(canEdit)setupEdit()}
+function refreshSelectedValues(){const row=document.querySelector(`tr[data-subject-id="${CSS.escape(selectedSubject.id)}"]`);if(!row)return;const ca=Number(document.querySelector('#selected-ca')?.value||0),exam=Number(selectedResult?.exam_score||0),total=ca+exam;row.querySelector('[data-total]').textContent=total.toFixed(2).replace(/\.00$/,'');row.querySelector('[data-grade]').textContent=gradeFrom(total,schoolSettings.grading_rules);row.querySelector('[data-point]').textContent=pointFrom(total,schoolSettings.grading_rules)}
+function setupEdit(){document.querySelector('#selected-ca')?.addEventListener('input',refreshSelectedValues);document.querySelector('#save-draft')?.addEventListener('click',()=>save('DRAFT'));document.querySelector('#submit-result')?.addEventListener('click',()=>save('SUBMITTED'))}
+function validate(){const ca=Number(document.querySelector('#selected-ca')?.value),max=Number(selectedSubject.max_ca);if(!Number.isFinite(ca)||ca<0||ca>max)throw new Error(`CA score must be between 0 and ${max}.`);const exam=Number(selectedResult.exam_score||0),total=ca+exam;return{ca,total,grade:gradeFrom(total,schoolSettings.grading_rules),grade_point:pointFrom(total,schoolSettings.grading_rules)}}
+async function save(status){const msg=document.querySelector('#table-message'),buttons=[document.querySelector('#save-draft'),document.querySelector('#submit-result')];try{buttons.forEach(b=>{if(b)b.disabled=true});msg.textContent='Saving result…';const v=validate(),patch={ca_score:v.ca,total:v.total,grade:v.grade,grade_point:v.grade_point,status};const{error}=await withTimeout(supabase.from('results').update(patch).eq('id',selectedResult.id).eq('created_by',user.id),'Saving the result');if(error)throw error;selectedResult={...selectedResult,...patch};resultMap.set(selectedSubject.id,selectedResult);toast(status==='SUBMITTED'?'Result submitted to admin.':'Result draft saved.');if(status==='SUBMITTED'){msg.textContent='Result submitted to the administrator successfully.';setTimeout(()=>location.href=`results.html?class=${encodeURIComponent(enrollment.class_id)}&subject=${encodeURIComponent(selectedSubject.id)}`,900)}else{msg.textContent='Changes saved as draft successfully.';renderTable()}}catch(e){console.error(e);msg.textContent=e.message||'The result could not be saved.';toast(msg.textContent,'error')}finally{buttons.forEach(b=>{if(b)b.disabled=false})}}
+async function load(){if(!resultIdParam&&!studentId)throw new Error('No student or result was selected.');setLoaderText('Checking the current academic term…');const{data:currentTerm,error:termError}=await withTimeout(supabase.from('terms').select('id,name,session_id,academic_sessions(name)').eq('is_current',true).order('starts_on',{ascending:false}).limit(1).maybeSingle(),'Loading the current term');if(termError)throw termError;if(!currentTerm)throw new Error('There is no current academic term configured.');term=currentTerm;const settingsResponse=await withTimeout(supabase.from('school_settings').select('*').limit(1).maybeSingle(),'Loading grading settings');if(settingsResponse.error)throw settingsResponse.error;schoolSettings=settingsResponse.data||schoolSettings;
+let enrollmentId=null,subjectId=subjectIdParam||null;if(resultIdParam){setLoaderText('Finding the selected result…');const{data:r,error:re}=await withTimeout(supabase.from('results').select('id,status,ca_score,exam_score,total,grade,grade_point,teacher_remark,published_at,enrollment_id,term_id,subject_id').eq('id',resultIdParam).eq('created_by',user.id).maybeSingle(),'Loading the selected result');if(re)throw re;if(!r)throw new Error('This result could not be found under your teacher account.');if(String(r.term_id)!==String(term.id))throw new Error('This result belongs to a different academic term.');selectedResult=r;enrollmentId=r.enrollment_id;subjectId=subjectId||r.subject_id}
+setLoaderText('Loading the student record…');const enrollmentResponse=await withTimeout(supabase.from('enrollments').select('id,student_id,class_id,status,students(id,first_name,middle_name,last_name,student_id,exam_number,photo_url,date_of_birth,gender,school_email,phone,address,guardian_name,guardian_phone),classes(id,name,level,description)').eq(enrollmentId?'id':'student_id',enrollmentId||studentId).eq('status','ACTIVE').order('created_at',{ascending:false}).limit(1).maybeSingle(),'Loading the student enrollment');if(enrollmentResponse.error)throw enrollmentResponse.error;if(!enrollmentResponse.data)throw new Error('Active student enrollment not found.');enrollment=enrollmentResponse.data;if(studentId&&String(enrollment.student_id)!==String(studentId))throw new Error('The selected student does not match this result.');if(classIdParam&&String(enrollment.class_id)!==String(classIdParam))throw new Error('The selected class does not match this student enrollment.');
+setLoaderText('Loading assigned subjects and result details…');const{data:assigned,error:ae}=await withTimeout(supabase.from('class_subjects').select('id,class_id,subject_id,subjects(id,name,code,max_ca,max_exam,is_active)').eq('teacher_id',user.teacher.id).eq('class_id',enrollment.class_id).order('id'),'Loading the subject assignments');if(ae)throw ae;subjects=(assigned||[]).map(x=>x.subjects).filter(x=>x&&x.is_active);if(!subjects.length)throw new Error('No active subjects are assigned to you for this class.');const{data:resultRows,error:rr}=await withTimeout(supabase.from('results').select('id,status,ca_score,exam_score,total,grade,grade_point,teacher_remark,published_at,enrollment_id,term_id,subject_id').eq('enrollment_id',enrollment.id).eq('term_id',term.id),'Loading the student result details');if(rr)throw rr;(resultRows||[]).forEach(r=>resultMap.set(r.subject_id,r));if(subjectId){selectedSubject=subjects.find(s=>String(s.id)===String(subjectId))||subjects.find(s=>String(s.id)===String(selectedResult?.subject_id))}if(!selectedSubject)throw new Error('The selected subject is not assigned to you for this class.');if(!selectedResult)selectedResult=resultMap.get(selectedSubject.id);if(!selectedResult)throw new Error('No existing result was found for this student and subject.');if(String(selectedResult.subject_id)!==String(selectedSubject.id))throw new Error('The selected result does not match the selected subject.');setLoaderText('Preparing the student result sheet…');renderTable()}
+async function run(){try{user=await withTimeout(requireTeacher(),'Verifying teacher access',12000);if(!user)return;if(!user.teacher?.id){const{data:teacher,error}=await withTimeout(supabase.from('teachers').select('id,full_name').eq('user_id',user.id).maybeSingle(),'Loading teacher profile');if(error)throw error;if(!teacher)throw new Error('Teacher profile could not be verified.');user.teacher={...user.teacher,...teacher}}await load()}catch(e){console.error(e);if(user)showError(e.message||'The selected result could not be loaded.');toast(e.message||'Could not load the result.','error')}finally{hideLoader()}}run();
 </script>
 </body>
 </html>
