@@ -1,141 +1,15 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Teacher Dashboard | Laff British Montessori School</title><link rel="stylesheet" href="assets/styles.css"><link rel="stylesheet" href="assets/dashboard.css"></head><body class="dashboard-page" data-title="Dashboard"><div id="page-loader" class="page-loader active" aria-live="polite"><div class="loader-box"><img class="loader-logo" src="https://i.ibb.co/whtP8S5v/image.png" alt="Laff British Montessori School"><div class="loader-spinner"></div><strong>Loading your dashboard</strong><span>Please wait while we prepare your teaching workspace…</span></div></div><div id="app-shell"></div><div id="toast-host"></div><div id="dashboard-popup" class="dashboard-popup" aria-hidden="true"><div class="welcome-modal" role="dialog" aria-modal="true" aria-labelledby="popup-title"><div class="welcome-banner"><img class="welcome-logo" src="https://i.ibb.co/whtP8S5v/image.png" alt="Laff British Montessori School"><h3 id="popup-title">Welcome back</h3><p id="popup-subtitle">Your teacher workspace is ready.</p></div><div class="welcome-body"><h4 id="popup-heading">Welcome to your dashboard</h4><p id="popup-text">Everything you need for your teaching duties is here.</p><div id="popup-actions" class="popup-actions"></div><div class="popup-footer"><button id="popup-close" class="close-popup" type="button">Continue</button></div></div></div></div><script type="module">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Teacher Dashboard | Laff British Montessori School</title><meta name="description" content="Laff British Montessori School teacher dashboard for classes, attendance, results, timetable and announcements."><link rel="stylesheet" href="assets/styles.css"><link rel="stylesheet" href="assets/dashboard.css"></head><body class="dashboard-page" data-title="Dashboard"><div id="page-loader" class="page-loader active" aria-live="polite"><div class="loader-box"><img class="loader-logo" src="https://i.ibb.co/whtP8S5v/image.png" alt="Laff British Montessori School"><div class="loader-spinner"></div><strong>Loading your dashboard</strong><span>Please wait while we prepare your teaching workspace…</span></div></div><div id="app-shell"></div><div id="toast-host"></div><div id="dashboard-popup" class="dashboard-popup" aria-hidden="true"><div class="welcome-modal" role="dialog" aria-modal="true" aria-labelledby="popup-title"><div class="welcome-banner"><img class="welcome-logo" src="https://i.ibb.co/whtP8S5v/image.png" alt="Laff British Montessori School"><h3 id="popup-title">Welcome back</h3><p id="popup-subtitle">Your teacher workspace is ready.</p></div><div class="welcome-body"><h4 id="popup-heading">Welcome to your dashboard</h4><p id="popup-text">Everything you need for your teaching duties is here.</p><div id="popup-actions" class="popup-actions"></div><div class="popup-footer"><button id="popup-close" class="close-popup" type="button">Continue</button></div></div></div></div><script type="module">
 import { requireTeacher, mountShell, supabase, escapeHtml } from './assets/app.js';
-
-const loader = document.querySelector('#page-loader');
-const popup = document.querySelector('#dashboard-popup');
-const popupTitle = document.querySelector('#popup-title');
-const popupSubtitle = document.querySelector('#popup-subtitle');
-const popupHeading = document.querySelector('#popup-heading');
-const popupText = document.querySelector('#popup-text');
-const popupActions = document.querySelector('#popup-actions');
-const popupClose = document.querySelector('#popup-close');
-
-const hideLoader = () => {
-  loader?.classList.remove('active');
-  setTimeout(() => loader?.remove(), 350);
-};
-
-const showPopup = () => popup?.classList.add('show');
-const hidePopup = () => popup?.classList.remove('show');
-
-function setPopup({ title, subtitle, heading, text, actions = [], button = 'Continue' }) {
-  popupTitle.textContent = title;
-  popupSubtitle.textContent = subtitle;
-  popupHeading.textContent = heading;
-  popupText.textContent = text;
-  popupActions.innerHTML = actions.map(a => `<a class="popup-action" href="${escapeHtml(a.href)}"><span class="icon">${escapeHtml(a.icon)}</span><span><b>${escapeHtml(a.title)}</b><small>${escapeHtml(a.text)}</small></span></a>`).join('');
-  popupClose.textContent = button;
-};
-
-function setupSmartWelcome(user) {
-  const key = `lbs_teacher_dashboard_seen_${user.id}`;
-  const isNewSignin = localStorage.getItem(key) !== '1';
-  localStorage.setItem(key, '1');
-
-  setPopup({
-    title: `Welcome back, ${user.teacher?.full_name || 'Teacher'}`,
-    subtitle: 'Laff British Montessori School • Teacher Portal',
-    heading: 'Your workspace is ready',
-    text: 'We have loaded your teaching workspace, assignments and academic tools.',
-    actions: [],
-    button: isNewSignin ? 'View my classes' : 'Continue to dashboard'
-  });
-  showPopup();
-
-  popupClose.onclick = () => {
-    if (isNewSignin) {
-      setPopup({
-        title: 'New teacher sign-in',
-        subtitle: 'Let’s get you started',
-        heading: 'View your classes & subjects',
-        text: 'Open your assigned classes and subjects so you know exactly what is on your teaching schedule.',
-        actions: [
-          { href: 'classes.html', icon: '▤', title: 'View my classes', text: 'See assigned classes and subjects' }
-        ],
-        button: 'Close'
-      });
-      popupClose.onclick = () => hidePopup();
-      return;
-    }
-
-    setPopup({
-      title: 'Welcome back',
-      subtitle: 'Laff British Montessori School • Teacher Portal',
-      heading: 'What would you like to do?',
-      text: 'Use one of these quick teacher actions to continue your work.',
-      actions: [
-        { href: 'profile.html', icon: '♙', title: 'View my profile', text: 'Review your teacher information' },
-        { href: 'attendance.html', icon: '◷', title: 'Mark attendance', text: 'Record class attendance' },
-        { href: 'results.html', icon: '✓', title: 'Upload results', text: 'Enter and submit student results' }
-      ],
-      button: 'Close'
-    });
-    popupClose.onclick = () => hidePopup();
-  };
-
-  popup.addEventListener('click', e => { if (e.target === popup) hidePopup(); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') hidePopup(); });
-};
-
-async function loadDashboard(user) {
-  const shell = document.querySelector('#app-shell');
-  const name = user.teacher?.full_name || 'Teacher';
-  shell.dataset.content = `<div class="dashboard-content">
-    <section class="dashboard-hero"><div class="hero-inner"><div class="hero-copy"><span class="hero-kicker">Teacher Workspace</span><h2>Welcome back, ${escapeHtml(name)} 👋</h2><p>Your teaching dashboard brings your classes, subjects, results, attendance and school updates into one place.</p></div><div class="hero-actions"><a class="btn" href="results.html">Enter Results</a><a class="btn secondary" href="classes.html">My Classes</a></div></div></section>
-    <section id="dashboard-stats" class="stats-grid"><article class="dash-stat"><span class="dash-stat-label">Assigned Classes</span><strong id="stat-classes" class="dash-stat-value">—</strong><span class="dash-stat-meta">Your active class groups</span></article><article class="dash-stat"><span class="dash-stat-label">Assigned Subjects</span><strong id="stat-subjects" class="dash-stat-value">—</strong><span class="dash-stat-meta">Subjects on your workload</span></article><article class="dash-stat"><span class="dash-stat-label">Draft Results</span><strong id="stat-drafts" class="dash-stat-value">—</strong><span class="dash-stat-meta">Saved but not submitted</span></article><article class="dash-stat"><span class="dash-stat-label">Submitted Results</span><strong id="stat-submitted" class="dash-stat-value">—</strong><span class="dash-stat-meta">Sent for review</span></article></section>
-    <section class="dashboard-grid"><div class="dash-panel"><div class="panel-head"><div><h3>My Classes & Subjects</h3><p>Your current teaching assignments from the school system.</p></div><a class="btn secondary" href="classes.html">View all</a></div><div id="class-grid" class="class-grid"><div class="empty-state">Loading your assignments…</div></div></div><div class="dash-panel"><div class="panel-head"><div><h3>Teacher Tools</h3><p>Quick access to the work you do most.</p></div></div><div class="tool-grid"><a class="tool" href="results.html"><span class="tool-icon">✓</span><span><b>Upload Results</b><span>Enter and submit scores</span></span></a><a class="tool" href="attendance.html"><span class="tool-icon">◷</span><span><b>Mark Attendance</b><span>Record class attendance</span></span></a><a class="tool" href="timetable.html"><span class="tool-icon">▦</span><span><b>My Timetable</b><span>View your weekly schedule</span></span></a><a class="tool" href="profile.html"><span class="tool-icon">♙</span><span><b>My Profile</b><span>Review your teacher details</span></span></a><a class="tool" href="announcements.html"><span class="tool-icon">◉</span><span><b>Announcements</b><span>Read school notices</span></span></a><a class="tool" href="classes.html"><span class="tool-icon">▤</span><span><b>My Classes</b><span>Review teaching assignments</span></span></a></div></div></section>
-    <section class="dash-panel"><div class="panel-head"><div><h3>School Announcements</h3><p>Latest notices available in the school system.</p></div><a class="btn secondary" href="announcements.html">View all</a></div><div id="announcement-list" class="announcement-list"><div class="empty-state">Loading announcements…</div></div></section>
-  </div>`;
-
-  mountShell(user);
-  await Promise.all([loadAssignments(user), loadStats(user), loadAnnouncements()]);
-  hideLoader();
-  setupSmartWelcome(user);
-}
-
-async function loadAssignments(user) {
-  const box = document.querySelector('#class-grid');
-  try {
-    const { data, error } = await supabase.from('class_subjects').select('id,class_id,subject_id,classes(id,name,level),subjects(id,name,code)').eq('teacher_id', user.teacher.id).order('id');
-    if (error) throw error;
-    const rows = data || [];
-    box.innerHTML = rows.length ? rows.slice(0, 6).map(x => `<article class="class-card"><div class="class-top"><span class="class-pill">${escapeHtml(x.classes?.level || 'Class')}</span><span class="small muted">Assigned</span></div><h4>${escapeHtml(x.classes?.name || 'Class')}</h4><p>${escapeHtml(x.subjects?.name || 'Subject')}${x.subjects?.code ? ` · ${escapeHtml(x.subjects.code)}` : ''}</p><a class="btn secondary" href="results.html?class=${encodeURIComponent(x.class_id)}&subject=${encodeURIComponent(x.subject_id)}">Enter Result</a></article>`).join('') : '<div class="empty-state">No class or subject assignments have been added yet.</div>';
-  } catch (e) {
-    console.error(e);
-    box.innerHTML = '<div class="empty-state">Your class assignments could not be loaded right now.</div>';
-  }
-}
-
-async function loadStats(user) {
-  try {
-    const [assignments, results] = await Promise.all([
-      supabase.from('class_subjects').select('class_id,subject_id').eq('teacher_id', user.teacher.id),
-      supabase.from('results').select('status').eq('created_by', user.id)
-    ]);
-    const a = assignments.data || [];
-    const r = results.data || [];
-    document.querySelector('#stat-classes').textContent = new Set(a.map(x => x.class_id)).size;
-    document.querySelector('#stat-subjects').textContent = new Set(a.map(x => x.subject_id)).size;
-    document.querySelector('#stat-drafts').textContent = r.filter(x => String(x.status || '').toUpperCase() === 'DRAFT').length;
-    document.querySelector('#stat-submitted').textContent = r.filter(x => String(x.status || '').toUpperCase() === 'SUBMITTED').length;
-  } catch (e) {
-    console.error(e);
-  }
-}
-
-async function loadAnnouncements() {
-  const box = document.querySelector('#announcement-list');
-  try {
-    const { data, error } = await supabase.from('announcements').select('id,title,created_at').order('created_at', { ascending: false }).limit(4);
-    if (error) throw error;
-    const rows = data || [];
-    box.innerHTML = rows.length ? rows.map(x => `<article class="announcement"><span class="announcement-dot"></span><div><b>${escapeHtml(x.title || 'School announcement')}</b><time>${x.created_at ? new Date(x.created_at).toLocaleDateString() : ''}</time></div></article>`).join('') : '<div class="empty-state">No announcements are available yet.</div>';
-  } catch (e) {
-    console.error(e);
-    box.innerHTML = '<div class="empty-state">Announcements could not be loaded right now.</div>';
-  }
-}
-
-const user = await requireTeacher();
-if (user) await loadDashboard(user);
+const loader=document.querySelector('#page-loader');const popup=document.querySelector('#dashboard-popup');const popupTitle=document.querySelector('#popup-title');const popupSubtitle=document.querySelector('#popup-subtitle');const popupHeading=document.querySelector('#popup-heading');const popupText=document.querySelector('#popup-text');const popupActions=document.querySelector('#popup-actions');const popupClose=document.querySelector('#popup-close');
+const hideLoader=()=>{loader?.classList.remove('active');setTimeout(()=>loader?.remove(),350)};const showPopup=()=>{popup?.classList.add('show');popup?.setAttribute('aria-hidden','false')};const hidePopup=()=>{popup?.classList.remove('show');popup?.setAttribute('aria-hidden','true')};
+function setPopup({title,subtitle,heading,text,actions=[],button='Continue'}){popupTitle.textContent=title;popupSubtitle.textContent=subtitle;popupHeading.textContent=heading;popupText.textContent=text;popupActions.innerHTML=actions.map(a=>`<a class="popup-action" href="${escapeHtml(a.href)}"><span class="icon">${escapeHtml(a.icon)}</span><span><b>${escapeHtml(a.title)}</b><small>${escapeHtml(a.text)}</small></span></a>`).join('');popupClose.textContent=button}
+function setupSmartWelcome(user){const params=new URLSearchParams(location.search);const signin=params.get('signin');const key=`lbs_teacher_dashboard_seen_${user.id}`;const isNewSignin=signin==='new'?true:signin==='returning'?false:localStorage.getItem(key)!=='1';localStorage.setItem(key,'1');if(signin)history.replaceState(null,document.title,location.pathname);
+setPopup({title:`Welcome back, ${user.teacher?.full_name||'Teacher'}`,subtitle:'Laff British Montessori School • Teacher Portal',heading:isNewSignin?'Welcome to your dashboard':'Your workspace is ready',text:isNewSignin?'Everything you need for your teaching duties is here. Let’s get you started.':'Your teaching workspace is ready. Choose a task below whenever you are ready.',actions:[],button:isNewSignin?'Continue':'Continue to dashboard'});showPopup();
+popupClose.onclick=()=>{if(isNewSignin){setPopup({title:'New teacher sign-in',subtitle:'Let’s get you started',heading:'View your class',text:'Start by checking the classes and subjects assigned to you so you know what is on your teaching schedule.',actions:[{href:'classes.html',icon:'▤',title:'View my classes',text:'See your assigned classes and subjects'}],button:'Close'});popupClose.onclick=()=>hidePopup();return}
+setPopup({title:'Welcome back',subtitle:'Laff British Montessori School • Teacher Portal',heading:'What would you like to do?',text:'Jump straight into one of your most-used teacher tools.',actions:[{href:'profile.html',icon:'♙',title:'View my profile',text:'Review your teacher information'},{href:'attendance.html',icon:'◷',title:'Mark attendance',text:'Record class attendance'},{href:'results.html',icon:'✓',title:'Upload results',text:'Enter and submit student results'}],button:'Close'});popupClose.onclick=()=>hidePopup()};popup.addEventListener('click',e=>{if(e.target===popup)hidePopup()});document.addEventListener('keydown',e=>{if(e.key==='Escape')hidePopup()})}
+async function loadDashboard(user){const shell=document.querySelector('#app-shell');const name=user.teacher?.full_name||'Teacher';shell.dataset.content=`<div class="dashboard-content"><section class="dashboard-hero"><div class="hero-inner"><div class="hero-copy"><span class="hero-kicker">Teacher Workspace</span><h2>Welcome back, ${escapeHtml(name)} 👋</h2><p>Your teaching dashboard brings your classes, subjects, results, attendance and school updates into one place.</p></div><div class="hero-actions"><a class="btn" href="results.html">Enter Results</a><a class="btn secondary" href="classes.html">My Classes</a></div></div></section><section id="dashboard-stats" class="stats-grid"><article class="dash-stat"><span class="dash-stat-label">Assigned Classes</span><strong id="stat-classes" class="dash-stat-value">—</strong><span class="dash-stat-meta">Your active class groups</span></article><article class="dash-stat"><span class="dash-stat-label">Assigned Subjects</span><strong id="stat-subjects" class="dash-stat-value">—</strong><span class="dash-stat-meta">Subjects on your workload</span></article><article class="dash-stat"><span class="dash-stat-label">Draft Results</span><strong id="stat-drafts" class="dash-stat-value">—</strong><span class="dash-stat-meta">Saved but not submitted</span></article><article class="dash-stat"><span class="dash-stat-label">Submitted Results</span><strong id="stat-submitted" class="dash-stat-value">—</strong><span class="dash-stat-meta">Sent for review</span></article></section><section class="dashboard-grid"><div class="dash-panel"><div class="panel-head"><div><h3>My Classes & Subjects</h3><p>Your current teaching assignments from the school system.</p></div><a class="btn secondary" href="classes.html">View all</a></div><div id="class-grid" class="class-grid"><div class="empty-state">Loading your assignments…</div></div></div><div class="dash-panel"><div class="panel-head"><div><h3>Teacher Tools</h3><p>Quick access to the work you do most.</p></div></div><div class="tool-grid"><a class="tool" href="results.html"><span class="tool-icon">✓</span><span><b>Upload Results</b><span>Enter and submit scores</span></span></a><a class="tool" href="attendance.html"><span class="tool-icon">◷</span><span><b>Mark Attendance</b><span>Record class attendance</span></span></a><a class="tool" href="timetable.html"><span class="tool-icon">▦</span><span><b>My Timetable</b><span>View your weekly schedule</span></span></a><a class="tool" href="profile.html"><span class="tool-icon">♙</span><span><b>My Profile</b><span>Review your teacher details</span></span></a><a class="tool" href="announcements.html"><span class="tool-icon">◉</span><span><b>Announcements</b><span>Read school notices</span></span></a><a class="tool" href="classes.html"><span class="tool-icon">▤</span><span><b>My Classes</b><span>Review teaching assignments</span></span></a></div></div></section><section class="dash-panel"><div class="panel-head"><div><h3>School Announcements</h3><p>Latest notices available in the school system.</p></div><a class="btn secondary" href="announcements.html">View all</a></div><div id="announcement-list" class="announcement-list"><div class="empty-state">Loading announcements…</div></div></section></div>`;mountShell(user);await Promise.all([loadAssignments(user),loadStats(user),loadAnnouncements()]);hideLoader();setupSmartWelcome(user)}
+async function loadAssignments(user){const box=document.querySelector('#class-grid');try{const{data,error}=await supabase.from('class_subjects').select('id,class_id,subject_id,classes(id,name,level),subjects(id,name,code)').eq('teacher_id',user.teacher.id).order('id');if(error)throw error;const rows=data||[];box.innerHTML=rows.length?rows.slice(0,6).map(x=>`<article class="class-card"><div class="class-top"><span class="class-pill">${escapeHtml(x.classes?.level||'Class')}</span><span class="small muted">Assigned</span></div><h4>${escapeHtml(x.classes?.name||'Class')}</h4><p>${escapeHtml(x.subjects?.name||'Subject')}${x.subjects?.code?` · ${escapeHtml(x.subjects.code)}`:''}</p><a class="btn secondary" href="results.html?class=${encodeURIComponent(x.class_id)}&subject=${encodeURIComponent(x.subject_id)}">Enter Result</a></article>`).join(''):'<div class="empty-state">No class or subject assignments have been added yet.</div>'}catch(e){console.error(e);box.innerHTML='<div class="empty-state">Your class assignments could not be loaded right now.</div>'}}
+async function loadStats(user){try{const[assignments,results]=await Promise.all([supabase.from('class_subjects').select('class_id,subject_id').eq('teacher_id',user.teacher.id),supabase.from('results').select('status').eq('created_by',user.id)]);const a=assignments.data||[];const r=results.data||[];document.querySelector('#stat-classes').textContent=new Set(a.map(x=>x.class_id)).size;document.querySelector('#stat-subjects').textContent=new Set(a.map(x=>x.subject_id)).size;document.querySelector('#stat-drafts').textContent=r.filter(x=>String(x.status||'').toUpperCase()==='DRAFT').length;document.querySelector('#stat-submitted').textContent=r.filter(x=>String(x.status||'').toUpperCase()==='SUBMITTED').length}catch(e){console.error(e)}}
+async function loadAnnouncements(){const box=document.querySelector('#announcement-list');try{const{data,error}=await supabase.from('announcements').select('id,title,created_at').order('created_at',{ascending:false}).limit(4);if(error)throw error;const rows=data||[];box.innerHTML=rows.length?rows.map(x=>`<article class="announcement"><span class="announcement-dot"></span><div><b>${escapeHtml(x.title||'School announcement')}</b><time>${x.created_at?new Date(x.created_at).toLocaleDateString():''}</time></div></article>`).join(''):'<div class="empty-state">No announcements are available yet.</div>'}catch(e){console.error(e);box.innerHTML='<div class="empty-state">Announcements could not be loaded right now.</div>'}}
+const user=await requireTeacher();if(user)await loadDashboard(user);
 </script></body></html>
