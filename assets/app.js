@@ -2,7 +2,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 const SUPABASE_URL='https://moqpmrhholbbhuedvbgg.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_IfSp9O5zUubH6rifFbfmZQ_DJttLC1f';
 export const supabase=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
-const logo='https://i.ibb.co/whtP8S5v/image.png';
+const logo='assets/school-logo.svg';
 const nav=[['index.html','Dashboard','▦'],['classes.html','My Classes & Subjects','▤'],['results.html','Enter Results','✓'],['attendance.html','Attendance','◷'],['timetable.html','My Timetable','▦'],['announcements.html','Announcements','◉'],['profile.html','My Profile','♙']];
 export function toast(message,type='success'){let h=document.querySelector('#toast-host');if(!h){h=document.createElement('div');h.id='toast-host';document.body.appendChild(h)}const e=document.createElement('div');e.className=`toast toast-${type}`;e.innerHTML=`<span class="toast-icon">${type==='success'?'✓':type==='error'?'!':'i'}</span><span>${escapeHtml(message)}</span>`;h.appendChild(e);requestAnimationFrame(()=>e.classList.add('show'));setTimeout(()=>{e.classList.remove('show');setTimeout(()=>e.remove(),250)},3800)}
 export function escapeHtml(v=''){return String(v).replace(/[&<>'\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','\"':'&quot;'}[c]||c))}
