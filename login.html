@@ -10,7 +10,7 @@
 <body class="login-page">
 <div class="login-wrap">
   <div class="login-card">
-    <img class="login-logo" src="https://i.ibb.co/whtP8S5v/image.png" alt="Laff British Montessori School">
+    <img class="login-logo" src="assets/school-logo.svg" alt="Laff British Montessori School">
     <p class="eyebrow">LBS TEACHER ACCESS</p>
     <h1>Teacher Portal</h1>
     <p class="muted" id="intro">Enter the school email and Staff ID issued to you.</p>
@@ -66,9 +66,10 @@ async function loginCheck(){
   return data;
 }
 
-async function finish(authEmail,password){
-  const {error}=await supabase.auth.signInWithPassword({email:authEmail,password});
-  if(error)throw new Error('Your teacher account was found, but portal sign-in could not be completed. Please contact the school administrator.');
+async function finish(result){
+  if(!result?.token_hash)throw new Error('Secure sign-in could not be prepared. Please try again.');
+  const {error}=await supabase.auth.verifyOtp({token_hash:result.token_hash,type:'email'});
+  if(error)throw new Error('Your teacher account was found, but secure sign-in could not be completed. Please try again.');
   toast('Sign-in successful. Opening your teacher dashboard…');
   location.replace('index.html?signin=returning');
 }
@@ -85,7 +86,7 @@ form.addEventListener('submit',async e=>{
     accountText.textContent='Your registered account was found. Opening the teacher portal…';
     secondaryDisplay.value=result.secondary_email||result.auth_email||'Registered school account';
     show(accountFound);
-    await finish(result.auth_email||result.secondary_email||result.school_email||email.value.trim().toLowerCase(),schoolId.value.trim().toUpperCase());
+    await finish(result);
   }catch(err){
     errorBox.textContent=err.message||'Could not sign you in.';
     toast(errorBox.textContent,'error');
