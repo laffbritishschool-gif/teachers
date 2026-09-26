@@ -60,6 +60,10 @@ import{requireTeacher,mountShell,supabase,escapeHtml,toast}from'./assets/app.js'
 const loader=document.querySelector('#page-loader');
 const hideLoader=()=>{loader?.classList.add('is-hidden');setTimeout(()=>loader?.remove(),380)};
 const esc=escapeHtml;
+const withTimeout=(promise,ms=10000)=>Promise.race([
+  promise,
+  new Promise((_,reject)=>setTimeout(()=>reject(new Error('The profile request timed out. Please refresh and try again.')),ms))
+]);
 let user;
 const initials=name=>String(name||'Teacher').split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase();
 const signedPhoto=async path=>{
@@ -67,7 +71,10 @@ const signedPhoto=async path=>{
   const value=String(path).trim();
   if(/^https?:\\/\\//i.test(value))return value;
   try{
-    const{data,error}=await supabase.storage.from('teacher-photos').createSignedUrl(value,3600);
+    const{data,error}=await withTimeout(
+      supabase.storage.from('teacher-photos').createSignedUrl(value,3600),
+      7000
+    );
     if(!error&&data?.signedUrl)return data.signedUrl;
   }catch(e){console.warn('Teacher photo signed URL failed:',e)}
   try{
@@ -75,9 +82,13 @@ const signedPhoto=async path=>{
     return data?.publicUrl||'';
   }catch{return''}
 };
+
 const render=(html)=>{const shell=document.querySelector('#app-shell');shell.dataset.content=html;mountShell(user)};
 async function load(){
-  const{data:t,error:te}=await supabase.from('teachers').select('id,staff_id,full_name,email,school_email,secondary_email,email_confirmation_mode,email_confirmed,email_confirmation_expires_at,phone,photo_url,is_active,created_at').eq('user_id',user.id).maybeSingle();
+  const{data:t,error:te}=await withTimeout(
+    supabase.from('teachers').select('id,staff_id,full_name,email,school_email,secondary_email,email_confirmation_mode,email_confirmed,email_confirmation_expires_at,phone,photo_url,is_active,created_at').eq('user_id',user.id).maybeSingle(),
+    10000
+  );
   if(te)throw te;
   if(!t)throw new Error('Your teacher profile could not be found.');
   user.teacher={...user.teacher,...t};
@@ -150,7 +161,10 @@ async function load(){
     </div>
   </div>`);
 }
-try{user=await requireTeacher();if(user)await load()}catch(e){console.error(e);if(user){render(`<div class="profile-page"><section class="profile-card profile-empty"><h2>Profile could not be loaded</h2><p>${esc(e.message||'Please refresh and try again.')}</p><a class="btn" href="profile.html">Try Again</a></section></div>`)}toast(e.message||'Could not load your profile.','error')}finally{hideLoader()}
+try{
+  user=await withTimeout(requireTeacher(),12000);
+  if(user)await load();
+}catch(e){console.error(e);if(user){render(`<div class="profile-page"><section class="profile-card profile-empty"><h2>Profile could not be loaded</h2><p>${esc(e.message||'Please refresh and try again.')}</p><a class="btn" href="profile.html">Try Again</a></section></div>`)}toast(e.message||'Could not load your profile.','error')}finally{hideLoader()}
 </script>
 </body>
 </html>
