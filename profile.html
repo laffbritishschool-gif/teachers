@@ -81,12 +81,29 @@ async function load(){
   if(te)throw te;
   if(!t)throw new Error('Your teacher profile could not be found.');
   user.teacher={...user.teacher,...t};
-  const[{data:assignments,error:ae},{data:term,error:termError}]=await Promise.all([
-    supabase.from('class_subjects').select('id,class_id,subject_id,classes(name,level),subjects(name,code,is_active)').eq('teacher_id',t.id).order('id'),
-    supabase.from('terms').select('id,name,academic_sessions(name)').eq('is_current',true).order('starts_on',{ascending:false}).limit(1).maybeSingle()
+  const withTimeout=(promise,ms=8000)=>Promise.race([
+    promise,
+    new Promise((_,reject)=>setTimeout(()=>reject(new Error('Request timed out')),ms))
   ]);
-  if(ae)throw ae;
-  if(termError)throw termError;
+  let assignments=[],term=null;
+  const [assignmentResult,termResult]=await Promise.allSettled([
+    withTimeout(supabase.from('class_subjects').select('id,class_id,subject_id,classes(name,level),subjects(name,code,is_active)').eq('teacher_id',t.id).order('id')),
+    withTimeout(supabase.from('terms').select('id,name,academic_sessions(name)').eq('is_current',true).order('starts_on',{ascending:false}).limit(1).maybeSingle())
+  ]);
+  if(assignmentResult.status==='fulfilled'&&!assignmentResult.value.error){
+    assignments=assignmentResult.value.data||[];
+  }else if(assignmentResult.status==='rejected'){
+    console.warn('Teacher assignments could not be loaded:',assignmentResult.reason);
+  }else{
+    console.warn('Teacher assignments query failed:',assignmentResult.value.error);
+  }
+  if(termResult.status==='fulfilled'&&!termResult.value.error){
+    term=termResult.value.data||null;
+  }else if(termResult.status==='rejected'){
+    console.warn('Current term could not be loaded:',termResult.reason);
+  }else{
+    console.warn('Current term query failed:',termResult.value.error);
+  }
   const rows=(assignments||[]).filter(x=>x.classes&&x.subjects?.is_active!==false);
   const photo=await signedPhoto(t.photo_url);
   const name=t.full_name||'Teacher';
