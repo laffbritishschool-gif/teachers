@@ -69,7 +69,7 @@ const initials=name=>String(name||'Teacher').split(/\s+/).filter(Boolean).slice(
 const signedPhoto=async path=>{
   if(!path)return'';
   const value=String(path).trim();
-  if(/^https?:\\/\\//i.test(value))return value;
+  if(/^https?:\/\//i.test(value))return value;
   try{
     const{data,error}=await withTimeout(
       supabase.storage.from('teacher-photos').createSignedUrl(value,3600),
