@@ -62,7 +62,19 @@ const hideLoader=()=>{loader?.classList.add('is-hidden');setTimeout(()=>loader?.
 const esc=escapeHtml;
 let user;
 const initials=name=>String(name||'Teacher').split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase();
-const signedPhoto=async path=>{if(!path)return'';try{const{data}=await supabase.storage.from('teacher-photos').createSignedUrl(path,3600);return data?.signedUrl||''}catch{return''}};
+const signedPhoto=async path=>{
+  if(!path)return'';
+  const value=String(path).trim();
+  if(/^https?:\\/\\//i.test(value))return value;
+  try{
+    const{data,error}=await supabase.storage.from('teacher-photos').createSignedUrl(value,3600);
+    if(!error&&data?.signedUrl)return data.signedUrl;
+  }catch(e){console.warn('Teacher photo signed URL failed:',e)}
+  try{
+    const{data}=supabase.storage.from('teacher-photos').getPublicUrl(value);
+    return data?.publicUrl||'';
+  }catch{return''}
+};
 const render=(html)=>{const shell=document.querySelector('#app-shell');shell.dataset.content=html;mountShell(user)};
 async function load(){
   const{data:t,error:te}=await supabase.from('teachers').select('id,staff_id,full_name,email,school_email,secondary_email,email_confirmation_mode,email_confirmed,email_confirmation_expires_at,phone,photo_url,is_active,created_at').eq('user_id',user.id).maybeSingle();
