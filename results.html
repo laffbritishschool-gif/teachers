@@ -5,7 +5,7 @@
 </style></head><body data-title="Enter Results"><div id="page-loader" class="lbs-loader" aria-live="polite"><div class="lbs-loader-card"><img class="lbs-loader-logo" src="https://i.ibb.co/whtP8S5v/image.png" alt="Laff British Montessori School"><div class="lbs-loader-ring"></div><div class="lbs-loader-title">Opening Enter Results</div><div class="lbs-loader-text">Preparing your academic result workspace…</div><div class="lbs-loader-bar"></div><div class="lbs-loader-dots"><span></span><span></span><span></span></div></div></div><div id="app-shell"></div><div id="toast-host"></div>
 <script type="module">
 import{requireTeacher,mountShell,supabase,escapeHtml,toast}from'./assets/app.js';
-const esc=escapeHtml,params=new URLSearchParams(location.search),requestedClass=params.get('class');
+const esc=escapeHtml,params=new URLSearchParams(location.search);let requestedClass=params.get('class');
 const loader=document.querySelector('#page-loader');const hideLoader=()=>{loader?.classList.add('is-hidden');setTimeout(()=>loader?.remove(),380)};
 let user,sessions=[],terms=[],assignments=[],students=[],selectedSession='',selectedTerm='',selectedClass='';
 const initials=(a,b)=>((a||'')[0]||'')+((b||'')[0]||'').toUpperCase();
